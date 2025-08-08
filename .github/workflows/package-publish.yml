@@ -1,19 +1,26 @@
-name: Publish Maven Package
+name: Publish Maven Github Package
 
 on:
+  workflow_dispatch: # allows manual trigger via GitHub CLI or UI
+    inputs:
+      releaseType:
+        description: 'Version bump type (patch, minor, major)'
+        required: true
+        default: 'patch'
   push:
     tags:
-      - 'v*' # Only when pushing tags like v1.0.0
+      - 'v*' # still supports pushing tags
 
 jobs:
-  build:
+  publish:
     runs-on: ubuntu-latest
     permissions:
-      contents: read
+      contents: write
       packages: write
 
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout code
+        uses: actions/checkout@v4
 
       - name: Set up Java
         uses: actions/setup-java@v4
@@ -23,6 +30,39 @@ jobs:
           server-id: github
           server-username: GITHUB_ACTOR
           server-password: ${{ secrets.GITHUB_TOKEN }}
+
+      # Get current version from pom.xml
+      - name: Get current version
+        id: get_version
+        run: |
+          current_version=$(mvn help:evaluate -Dexpression=project.version -q -DforceStdout)
+          echo "current_version=$current_version" >> $GITHUB_ENV
+
+      # Bump version automatically
+      - name: Bump version
+        run: |
+          release_type="${{ github.event.inputs.releaseType }}"
+          base_version="${{ env.current_version }}"
+          IFS='.' read -r major minor patch <<< "$base_version"
+          if [ "$release_type" = "major" ]; then
+            major=$((major+1)); minor=0; patch=0
+          elif [ "$release_type" = "minor" ]; then
+            minor=$((minor+1)); patch=0
+          else
+            patch=$((patch+1))
+          fi
+          new_version="${major}.${minor}.${patch}"
+          mvn versions:set -DnewVersion=$new_version
+          mvn versions:commit
+          echo "new_version=$new_version" >> $GITHUB_ENV
+
+      - name: Commit new version
+        run: |
+          git config user.name "github-actions"
+          git config user.email "actions@github.com"
+          git commit -am "chore: bump version to ${{ env.new_version }}"
+          git tag "v${{ env.new_version }}"
+          git push origin HEAD --tags
 
       - name: Build with Maven
         run: mvn -B package
