@@ -6,6 +6,8 @@ A reusable Java library containing common components to accelerate development a
 
 ## Features
 
+### Common
+
 - **Global Exception Handler**  
   Centralized exception handling to standardize error responses and improve maintainability.
 
@@ -15,7 +17,11 @@ A reusable Java library containing common components to accelerate development a
 - **Custom Annotations**  
   Handy annotations to reduce boilerplate and improve code readability and documentation.
 
----
+### Caching 
+
+- **Inmemory , redis ,etc providers**
+  Multiple cache provider implementation 
+
 
 ## How to Use
 
