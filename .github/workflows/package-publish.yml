@@ -3,9 +3,9 @@ name: Publish Maven Package on PR Merge
 on:
   pull_request:
     types:
-      - closed   # Only run when PR is closed
+      - closed
     branches:
-      - main     # Only if PR targets main
+      - main
 
 jobs:
   publish:
@@ -13,8 +13,8 @@ jobs:
     runs-on: ubuntu-latest
 
     permissions:
-      contents: read
-      packages: write
+      contents: write       # needed to push commits/tags
+      packages: write       # needed to publish packages
 
     steps:
       - name: Checkout code
@@ -26,9 +26,38 @@ jobs:
           java-version: '21'
           distribution: 'temurin'
           server-id: github
-          settings-path: ${{ github.workspace }} # location for the settings.xml file
+          settings-path: ${{ github.workspace }}
 
+      # Get current version
+      - name: Get current version from pom.xml
+        id: get_version
+        run: |
+          version=$(mvn help:evaluate -Dexpression=project.version -q -DforceStdout)
+          echo "current_version=$version" >> $GITHUB_ENV
+
+      # Bump patch version automatically
+      - name: Bump version
+        run: |
+          base_version="${{ env.current_version }}"
+          IFS='.' read -r major minor patch <<< "$base_version"
+          patch=$((patch+1))
+          new_version="${major}.${minor}.${patch}"
+          mvn versions:set -DnewVersion=$new_version
+          mvn versions:commit
+          echo "new_version=$new_version" >> $GITHUB_ENV
+
+      # Commit and push new version + tag
+      - name: Commit new version and tag
+        run: |
+          git config user.name "github-actions"
+          git config user.email "actions@github.com"
+          git commit -am "chore: bump version to ${{ env.new_version }}"
+          git tag "v${{ env.new_version }}"
+          git push origin main
+          git push origin "v${{ env.new_version }}"
+
+      # Build and deploy
       - name: Build and Publish to GitHub Packages
-        run: mvn deploy -s $GITHUB_WORKSPACE/settings.xml
+        run: mvn -B deploy -DskipTests -s $GITHUB_WORKSPACE/settings.xml
         env:
-          GITHUB_TOKEN: ${{ github.token }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
