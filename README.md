@@ -38,6 +38,14 @@ version will be changed every pull request
 <dependency>
   <groupId>com.github.integral-ways</groupId>
   <artifactId>shared-library</artifactId>
-  <version>v0.0.4</version>
+  <version>v0.0.6</version>
 </dependency>
 ```
+---
+
+## Access through jitpack
+
+https://jitpack.io/#integral-ways/shared-library
+
+Lookup : integral-ways/shared-library
+
