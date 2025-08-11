@@ -7,10 +7,23 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.support.ReloadableResourceBundleMessageSource;
 import org.springframework.web.servlet.LocaleResolver;
+import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
+import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
+import org.springframework.web.servlet.i18n.LocaleChangeInterceptor;
 import org.springframework.web.servlet.i18n.SessionLocaleResolver;
 
 @Configuration
-public class MessageConfig {
+public class MessageConfig implements WebMvcConfigurer {
+
+	@Bean
+	MessageSource messageSource() {
+		ReloadableResourceBundleMessageSource ms = new ReloadableResourceBundleMessageSource();
+		ms.setBasename("classpath:messages/messages"); // or "classpath:messages"
+		ms.setDefaultEncoding("UTF-8");
+		ms.setUseCodeAsDefaultMessage(true);
+		ms.setCacheSeconds(10);
+		return ms;
+	}
 
 	@Bean
 	LocaleResolver localeResolver() {
@@ -20,23 +33,14 @@ public class MessageConfig {
 	}
 
 	@Bean
-	MessageSource messageSource() {
-		ReloadableResourceBundleMessageSource messageSource = new ReloadableResourceBundleMessageSource();
+	LocaleChangeInterceptor localeChangeInterceptor() {
+		LocaleChangeInterceptor lci = new LocaleChangeInterceptor();
+		lci.setParamName("lang");
+		return lci;
+	}
 
-		// Base name without locale extension: it will load messages.properties and
-		// messages_ar.properties automatically
-		messageSource.setBasename("classpath:messages/messages");
-
-		// Encoding for property files
-		messageSource.setDefaultEncoding("UTF-8");
-
-		// If message code not found, show code instead of throwing exception
-		messageSource.setUseCodeAsDefaultMessage(true);
-
-		// Cache duration in seconds (set to reload every 10 seconds, or -1 to cache
-		// forever)
-		messageSource.setCacheSeconds(-1);
-
-		return messageSource;
+	@Override
+	public void addInterceptors(InterceptorRegistry registry) {
+		registry.addInterceptor(localeChangeInterceptor());
 	}
 }
