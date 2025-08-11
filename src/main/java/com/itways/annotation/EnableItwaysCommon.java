@@ -9,13 +9,13 @@ import java.lang.annotation.Target;
 import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.context.annotation.Import;
 
-import com.itways.common.CommonConfiguration;
+import com.itways.common.CommonConfig;
 
 @Target(ElementType.TYPE)
 @Retention(RetentionPolicy.RUNTIME)
 @Documented
 @EnableCaching
-@Import(CommonConfiguration.class)
+@Import(CommonConfig.class)
 public @interface EnableItwaysCommon {
 
 }

@@ -5,6 +5,6 @@ import org.springframework.context.annotation.Configuration;
 
 @Configuration
 @ComponentScan(basePackages = "com.itways.common")
-public class CommonConfiguration {
+public class CommonConfig {
 
 }
