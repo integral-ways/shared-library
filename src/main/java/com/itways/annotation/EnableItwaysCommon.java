@@ -11,6 +11,9 @@ import org.springframework.context.annotation.Import;
 
 import com.itways.common.CommonConfig;
 
+/**
+ * @author SSATWA
+ */
 @Target(ElementType.TYPE)
 @Retention(RetentionPolicy.RUNTIME)
 @Documented

@@ -10,7 +10,9 @@ import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.context.annotation.Import;
 
 import com.itways.cache.CacheAutoConfiguration;
-
+/**
+ * @author SSATWA
+ */
 @Target(ElementType.TYPE)
 @Retention(RetentionPolicy.RUNTIME)
 @Documented
