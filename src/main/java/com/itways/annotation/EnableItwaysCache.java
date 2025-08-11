@@ -16,6 +16,6 @@ import com.itways.cache.CacheAutoConfiguration;
 @Documented
 @EnableCaching
 @Import(CacheAutoConfiguration.class) // Import your cache config
-public @interface EnableCustCache {
+public @interface EnableItwaysCache {
 
 }
