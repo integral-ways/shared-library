@@ -37,10 +37,8 @@ public class ApiResponseWrapperAdvice implements ResponseBodyAdvice<Object> {
 
 	@Override
 	public boolean supports(MethodParameter returnType, Class<? extends HttpMessageConverter<?>> converterType) {
-		// You can put logic here to selectively apply wrapping for controllers or
-		// methods,
-		// e.g. only wrap @RestController or @ResponseBody responses.
-		return true; // wrap all responses (except excluded paths)
+		String path = request.getRequestURI();
+		return !EXCLUDED_PATH_PREFIXES.stream().anyMatch(path::contains);
 	}
 
 	@Override
@@ -48,13 +46,6 @@ public class ApiResponseWrapperAdvice implements ResponseBodyAdvice<Object> {
 	public Object beforeBodyWrite(@Nullable Object body, MethodParameter returnType, MediaType selectedContentType,
 			Class<? extends HttpMessageConverter<?>> selectedConverterType, ServerHttpRequest serverRequest,
 			ServerHttpResponse serverResponse) {
-
-		String path = request.getRequestURI();
-
-		// Exclude swagger, actuator, etc paths
-		if (EXCLUDED_PATH_PREFIXES.stream().anyMatch(path::startsWith)) {
-			return body;
-		}
 
 		// If already wrapped, return as is
 		if (body instanceof GeneralApiResponse) {

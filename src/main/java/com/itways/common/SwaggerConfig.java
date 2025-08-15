@@ -21,13 +21,16 @@ import lombok.extern.slf4j.Slf4j;
 @Configuration
 public class SwaggerConfig {
 
-	@Value("${service.name:Generic API}")
-	private String serviceName;
+	private static final String SECURITY_SCHEME_NAME = "authScheme";
 
-	@Value("${authentication.type:jwt}") // default to jwt
+	@Value("${api.version:v1}")
+	private String apiVersion;
+
+	@Value("${authentication.type:jwt}")
 	private String authType;
 
-	private static final String SECURITY_SCHEME_NAME = "authScheme";
+	@Value("${spring.application.name:Generic API}")
+	private String serviceName;
 
 	@Bean
 	public OpenAPI genericOpenAPI() {
@@ -35,8 +38,8 @@ public class SwaggerConfig {
 				authType);
 
 		OpenAPI openAPI = new OpenAPI()
-				.info(new Info().title(serviceName + " API Documentation")
-						.description("This is the Swagger setup for " + serviceName).version("v1.0.0")
+				.info(new Info().title(serviceName + " Documentation")
+						.description("This is the Swagger setup for " + serviceName).version(apiVersion)
 						.contact(new Contact().name("API Support").url("https://itways.com/support")
 								.email("support@itways.com"))
 						.license(new License().name("Apache 2.0").url("https://springdoc.org")))
@@ -46,8 +49,14 @@ public class SwaggerConfig {
 		Components components = new Components();
 		SecurityRequirement securityRequirement = new SecurityRequirement();
 
-		if ("oauth2".equalsIgnoreCase(authType)) {
-			// OAuth2 config - example with authorizationCode flow
+		if ("jwt".equalsIgnoreCase(authType)) {
+			SecurityScheme jwtScheme = new SecurityScheme().type(SecurityScheme.Type.HTTP).scheme("bearer")
+					.bearerFormat("JWT").description("JWT Bearer token authentication");
+
+			components.addSecuritySchemes(SECURITY_SCHEME_NAME, jwtScheme);
+			securityRequirement.addList(SECURITY_SCHEME_NAME);
+
+		} else if ("oauth2".equalsIgnoreCase(authType)) {
 			OAuthFlows flows = new OAuthFlows().authorizationCode(new OAuthFlow()
 					.authorizationUrl("https://example.com/oauth/authorize").tokenUrl("https://example.com/oauth/token")
 					.scopes(new Scopes().addString("read", "Read access").addString("write", "Write access")));
@@ -58,13 +67,6 @@ public class SwaggerConfig {
 			components.addSecuritySchemes(SECURITY_SCHEME_NAME, oauth2Scheme);
 			securityRequirement.addList(SECURITY_SCHEME_NAME, java.util.List.of("read", "write"));
 
-		} else if ("jwt".equalsIgnoreCase(authType)) {
-			// JWT Bearer config
-			SecurityScheme jwtScheme = new SecurityScheme().type(SecurityScheme.Type.HTTP).scheme("bearer")
-					.bearerFormat("JWT").description("JWT Bearer token authentication");
-
-			components.addSecuritySchemes(SECURITY_SCHEME_NAME, jwtScheme);
-			securityRequirement.addList(SECURITY_SCHEME_NAME);
 		} else {
 			log.warn("Unknown authentication.type '{}', no security scheme applied in Swagger", authType);
 		}
