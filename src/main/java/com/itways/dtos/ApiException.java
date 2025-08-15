@@ -1,4 +1,4 @@
-package com.itways.exception;
+package com.itways.dtos;
 
 import lombok.Getter;
 
