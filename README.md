@@ -1,4 +1,4 @@
-# shared-library [common]
+# shared-library
 
 A reusable Java library containing common components to accelerate development and maintain consistency across your projects.
 
