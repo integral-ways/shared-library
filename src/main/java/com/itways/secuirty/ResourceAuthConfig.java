@@ -33,7 +33,8 @@ public class ResourceAuthConfig {
 
 	@Bean
 	SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
-		http.csrf(AbstractHttpConfigurer::disable).cors(cors -> cors.configurationSource(corsConfigurationSource())) // ✅
+		http.csrf(AbstractHttpConfigurer::disable)
+//		.cors(cors -> cors.configurationSource(corsConfigurationSource())) // ✅
 																														// enable
 																														// CORS
 				.exceptionHandling(ex -> ex.authenticationEntryPoint(authEntryPoint))
@@ -47,16 +48,16 @@ public class ResourceAuthConfig {
 	}
 
 	// ✅ CORS configuration for Security
-	@Bean
-	CorsConfigurationSource corsConfigurationSource() {
-		CorsConfiguration cors = new CorsConfiguration();
-		cors.setAllowedOriginPatterns(List.of("*")); // allow all origins with credentials
-		cors.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
-		cors.setAllowedHeaders(List.of("*"));
-		cors.setAllowCredentials(true);
-
-		UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-		source.registerCorsConfiguration("/**", cors);
-		return source;
-	}
+//	@Bean
+//	CorsConfigurationSource corsConfigurationSource() {
+//		CorsConfiguration cors = new CorsConfiguration();
+//		cors.setAllowedOriginPatterns(List.of("*")); // allow all origins with credentials
+//		cors.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+//		cors.setAllowedHeaders(List.of("*"));
+//		cors.setAllowCredentials(true);
+//
+//		UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+//		source.registerCorsConfiguration("/**", cors);
+//		return source;
+//	}
 }
