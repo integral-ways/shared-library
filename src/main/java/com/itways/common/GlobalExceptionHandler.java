@@ -31,7 +31,7 @@ public class GlobalExceptionHandler {
 	}
 
 	private String getMessage(String code, Locale locale, Object... args) {
-		return messageSource.getMessage(code, args, "An unexpected error occurred", locale);
+		return messageSource.getMessage(code, args, code, locale);
 	}
 
 	// --- 400 - Bad Request ---
