@@ -8,4 +8,8 @@ public class DbSourceConfig {
 	private String username;
 	private String password;
 	private String driver;
+	
+	private String ddl;
+	private String showSql;
+	private String formatSql;
 }
