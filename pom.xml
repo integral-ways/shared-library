@@ -13,7 +13,7 @@
 
 	<groupId>com.itways</groupId>
 	<artifactId>common</artifactId>
-	<version>0.0.26</version>
+	<version>0.0.27</version>
 	<name>shared library</name>
 	<description>shared library</description>
 
