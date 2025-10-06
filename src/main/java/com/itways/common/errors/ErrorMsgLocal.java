@@ -1,4 +1,4 @@
-package com.itways.common;
+package com.itways.common.errors;
 
 import java.io.Serializable;
 

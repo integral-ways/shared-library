@@ -1,4 +1,4 @@
-package com.itways.common;
+package com.itways.common.errors;
 
 public interface CustomErrorCodes {
     String REQUIRED_FILED = "EC000002";
