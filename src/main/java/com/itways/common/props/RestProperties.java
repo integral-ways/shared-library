@@ -1,4 +1,4 @@
-package com.itways.common;
+package com.itways.common.props;
 
 import java.util.HashMap;
 import java.util.Map;

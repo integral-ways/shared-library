@@ -7,7 +7,7 @@ import lombok.Data;
 
 @Component
 @Data
-@ConfigurationProperties(prefix = "security.jwt")
+@ConfigurationProperties(prefix = "itways.security.jwt")
 public class JwtProperties {
 	private String secretKey;
 	private String publicKey;
