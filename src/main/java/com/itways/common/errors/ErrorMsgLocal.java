@@ -13,13 +13,17 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class ErrorMsgLocal implements Serializable {
 
+	private static final long serialVersionUID = 1L;
+	
 	private String ar;
 	private String en;
-	
+
 	private String titleAr;
 	private String titleEn;
-	
+
 	private String category;
-	
+
 	private String application;
+
+	private String icon;
 }

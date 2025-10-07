@@ -67,8 +67,8 @@ public class ApiResponseWrapperAdvice implements ResponseBodyAdvice<Object> {
 			}
 
 			return ResponseEntity.status(responseEntity.getStatusCode()).headers(responseEntity.getHeaders())
-					.body(GeneralApiResponse.success(HttpStatus.valueOf(responseEntity.getStatusCode().value()),
-							"Success", responseBody));
+					.body(GeneralApiResponse.success(HttpStatus.valueOf(responseEntity.getStatusCode().value()), null,
+							responseBody));
 		}
 
 		// Wrap the raw response body in GeneralApiResponse with 200 OK

@@ -5,11 +5,8 @@ import java.util.Locale;
 import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.MessageSource;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
-import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -24,59 +21,69 @@ import lombok.extern.slf4j.Slf4j;
 public class GlobalExceptionHandler {
 
 	@Autowired
-	private MessageSource messageSource;
+	private ResourceBundleUtility resourceBundleUtility;
 
 	public GlobalExceptionHandler() {
 		log.info("✅ GlobalExceptionHandler initialized");
 	}
 
-	private String getMessage(String code, Locale locale, Object... args) {
-		return messageSource.getMessage(code, args, code, locale);
+	private MessageCode getMessage(String code, Locale locale, Object... args) {
+		return resourceBundleUtility.getMessage(code, args, locale);
 	}
 
 	// --- 400 - Bad Request ---
 	@ExceptionHandler(MethodArgumentNotValidException.class)
-	public ResponseEntity<GeneralApiResponse<Map<String, String>>> handleMethodArgumentNotValidException(
+	public ResponseEntity<GeneralApiResponse<Map<String, MessageCode>>> handleMethodArgumentNotValidException(
 			MethodArgumentNotValidException ex, Locale locale) {
 
-		Map<String, String> errors = new HashMap<>();
+		Map<String, MessageCode> errors = new HashMap<>();
 		ex.getBindingResult().getFieldErrors().forEach((error) -> {
-			String fieldName = ((FieldError) error).getField();
-			String errorMessage = messageSource.getMessage(error, locale);
-			errors.put(fieldName, errorMessage);
+			String fieldName = error.getField();
+			MessageCode messageError = getMessage("validation." + fieldName, locale, null);
+			errors.put(fieldName, messageError);
 		});
 
-		log.warn("Validation failed for request: {}", errors);
-		GeneralApiResponse<Map<String, String>> apiResponse = GeneralApiResponse.error(HttpStatus.BAD_REQUEST,
-				getMessage("error.validation", locale), errors);
-		return new ResponseEntity<>(apiResponse, HttpStatus.BAD_REQUEST);
+		log.warn("❌ Validation failed: {}", errors);
+
+		MessageCode validationMessage = getMessage("error.validation", locale);
+		GeneralApiResponse<Map<String, MessageCode>> apiResponse = GeneralApiResponse.error(HttpStatus.BAD_REQUEST,
+				validationMessage, errors);
+
+		return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(apiResponse);
 	}
 
+	// --- Custom business exceptions ---
 	@ExceptionHandler(ApiException.class)
-	public ResponseEntity<GeneralApiResponse<Object>> handleApiException(ApiException ex, Locale locale) {
-		String message = getMessage(ex.getMessage(), locale, ex.getArgs());
-		log.warn("API Exception: {}", message);
-		GeneralApiResponse<Object> apiResponse = GeneralApiResponse.error(HttpStatus.valueOf(400), message);
-		return new ResponseEntity<>(apiResponse, HttpStatusCode.valueOf(400));
+	public ResponseEntity<GeneralApiResponse<MessageCode>> handleApiException(ApiException ex, Locale locale) {
+		MessageCode messageError = getMessage(ex.getMessage(), locale, ex.getArgs());
+		log.warn("⚠️ API Exception: {}", messageError);
+
+		GeneralApiResponse<MessageCode> apiResponse = GeneralApiResponse.error(HttpStatus.BAD_REQUEST, messageError);
+
+		return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(apiResponse);
 	}
 
-	// --- 400 - Bad Request ---
-	public ResponseEntity<GeneralApiResponse<Object>> handleIllegalArgumentException(IllegalArgumentException ex,
+	// --- 400 - Illegal Argument ---
+	@ExceptionHandler(IllegalArgumentException.class)
+	public ResponseEntity<GeneralApiResponse<MessageCode>> handleIllegalArgumentException(IllegalArgumentException ex,
 			Locale locale) {
-		log.warn("Bad request: {}", ex.getMessage());
-		GeneralApiResponse<Object> apiResponse = GeneralApiResponse.error(HttpStatus.BAD_REQUEST, ex.getMessage(),
-				locale);
-		return new ResponseEntity<>(apiResponse, HttpStatus.BAD_REQUEST);
+		log.warn("⚠️ Bad request: {}", ex.getMessage());
+
+		MessageCode messageError = getMessage(ex.getMessage(), locale);
+		GeneralApiResponse<MessageCode> apiResponse = GeneralApiResponse.error(HttpStatus.BAD_REQUEST, messageError);
+
+		return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(apiResponse);
 	}
 
 	// --- 500 - Internal Server Error ---
 	@ExceptionHandler(Exception.class)
-	public ResponseEntity<GeneralApiResponse<Object>> handleGenericException(Exception ex, Locale locale) {
-		// Use SLF4J for logging instead of ex.printStackTrace()
-		log.error("An unexpected error occurred", ex);
+	public ResponseEntity<GeneralApiResponse<MessageCode>> handleGenericException(Exception ex, Locale locale) {
+		log.error("💥 Unexpected error occurred", ex);
 
-		GeneralApiResponse<Object> apiResponse = GeneralApiResponse.error(HttpStatus.INTERNAL_SERVER_ERROR,
-				getMessage("error.unexpected", locale));
-		return new ResponseEntity<>(apiResponse, HttpStatus.INTERNAL_SERVER_ERROR);
+		MessageCode messageError = getMessage("error.unexpected", locale);
+		GeneralApiResponse<MessageCode> apiResponse = GeneralApiResponse.error(HttpStatus.INTERNAL_SERVER_ERROR,
+				messageError);
+
+		return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(apiResponse);
 	}
 }
