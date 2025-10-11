@@ -20,7 +20,7 @@ public class LocalErrorsCodeFinder implements ErrorsCodeFinder {
 	public MessageCode getMessage(String code, Object[] args, Locale locale) {
 		String msg = messageSource.getMessage(code, args, code, locale);
 
-		return MessageCode.builder().code(code).title(null).message(msg).icon(null).build();
+		return MessageCode.builder().code(code).title(null).detail(msg).icon(null).build();
 	}
 
 }

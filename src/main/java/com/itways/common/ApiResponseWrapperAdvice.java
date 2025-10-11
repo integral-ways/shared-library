@@ -72,6 +72,6 @@ public class ApiResponseWrapperAdvice implements ResponseBodyAdvice<Object> {
 		}
 
 		// Wrap the raw response body in GeneralApiResponse with 200 OK
-		return GeneralApiResponse.success(body);
+		return GeneralApiResponse.success(status,null,body);
 	}
 }

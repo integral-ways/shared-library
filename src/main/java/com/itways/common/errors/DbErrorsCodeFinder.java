@@ -40,14 +40,14 @@ public class DbErrorsCodeFinder implements InitializingBean, ErrorsCodeFinder {
 			// If DB/local cache empty → fallback to messageSource
 			if (data == null || data.isEmpty()) {
 				String msg = messageSource.getMessage(code, args, code, locale);
-				return MessageCode.builder().code(code).title(null).message(msg).icon(null).build();
+				return MessageCode.builder().code(code).title(null).detail(msg).icon(null).build();
 			}
 
 			ErrorMsgLocal errorMsg = data.get(code);
 
 			if (errorMsg == null) {
 				String msg = messageSource.getMessage(code, args, code, locale);
-				return MessageCode.builder().code(code).title(null).message(msg).icon(null).build();
+				return MessageCode.builder().code(code).title(null).detail(msg).icon(null).build();
 			}
 
 			String title;
@@ -62,11 +62,11 @@ public class DbErrorsCodeFinder implements InitializingBean, ErrorsCodeFinder {
 			}
 
 			return MessageCode.builder().code(code).title(StringUtils.defaultIfBlank(title, null))
-					.message(StringUtils.defaultIfBlank(message, code)).icon(errorMsg.getIcon()).build();
+					.detail(StringUtils.defaultIfBlank(message, code)).icon(errorMsg.getIcon()).build();
 
 		} catch (Exception ex) {
 			String msg = messageSource.getMessage(code, args, code, locale);
-			return MessageCode.builder().code(code).title(null).message(StringUtils.defaultIfBlank(msg, code))
+			return MessageCode.builder().code(code).title(null).detail(StringUtils.defaultIfBlank(msg, code))
 					.icon(null).build();
 		}
 	}

@@ -17,7 +17,7 @@ public class InMemoryCacheProvider implements CacheProvider {
 		log.info("✅ InMemoryCacheProvider initialized");
 	}
 
-	private static class CacheEntry {
+	public static class CacheEntry {
 		Object value;
 		Instant expiresAt;
 
@@ -65,4 +65,9 @@ public class InMemoryCacheProvider implements CacheProvider {
 	public void clear(String cacheName) {
 		caches.remove(cacheName);
 	}
+
+	public Map<String, Map<String, CacheEntry>> getAllCaches() {
+		return caches;
+	}
+
 }
