@@ -19,7 +19,7 @@ public class ResourceBundleUtility {
 		if (StringUtils.isNotBlank(msgKey)) {
 			return errorsCodeFinder.getMessage(msgKey, params, locale);
 		} else {
-			return MessageCode.builder().code(null).title(null).message(msgKey).icon(null).build();
+			return MessageCode.builder().code(null).title(null).detail(msgKey).icon(null).build();
 		}
 	}
 
@@ -27,7 +27,7 @@ public class ResourceBundleUtility {
 		if (StringUtils.isNotBlank(msgKey)) {
 			return errorsCodeFinder.getMessage(msgKey, null, locale);
 		} else {
-			return MessageCode.builder().code(null).title(null).message(msgKey).icon(null).build();
+			return MessageCode.builder().code(null).title(null).detail(msgKey).icon(null).build();
 		}
 	}
 

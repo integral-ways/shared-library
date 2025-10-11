@@ -19,6 +19,9 @@ import org.springframework.http.client.ClientHttpRequestFactory;
 import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
 import org.springframework.web.client.RestTemplate;
 
+import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
@@ -26,6 +29,14 @@ import lombok.extern.slf4j.Slf4j;
 @ComponentScan(basePackages = "com.itways.common")
 @PropertySource("classpath:application-common.properties")
 public class CommonConfig {
+
+	@Bean
+	public ObjectMapper mapper() {
+		ObjectMapper mapper = new ObjectMapper();
+		mapper.findAndRegisterModules();
+		mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+		return mapper;
+	}
 
 	@Bean
 	public RestTemplate restTemplate() {

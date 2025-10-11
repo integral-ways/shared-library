@@ -4,6 +4,7 @@ import java.security.interfaces.RSAPublicKey;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
+import org.springframework.cloud.context.config.annotation.RefreshScope;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
@@ -11,11 +12,8 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
-import org.springframework.web.cors.CorsConfiguration;
-import org.springframework.web.cors.CorsConfigurationSource;
-import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
-import java.util.List;
+import com.itways.common.props.SecurityProperties;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -31,18 +29,22 @@ public class ResourceAuthConfig {
 	@Autowired
 	private RSAPublicKey publicKey;
 
+	@Autowired
+	private SecurityProperties securityProperties;
+
+	@RefreshScope
 	@Bean
 	SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
 		http.csrf(AbstractHttpConfigurer::disable)
 //		.cors(cors -> cors.configurationSource(corsConfigurationSource())) // ✅
-																														// enable
-																														// CORS
-				.exceptionHandling(ex -> ex.authenticationEntryPoint(authEntryPoint))
-				.authorizeHttpRequests(auth -> auth
-						.requestMatchers("/public/**", "/auth/**", "/swagger-ui/**", "/swagger-ui.html",
-								"/v3/api-docs/**", "/swagger-resources/**", "/webjars/**")
-						.permitAll().anyRequest().authenticated())
-				.addFilterBefore(new JwtAuthFilter(publicKey), UsernamePasswordAuthenticationFilter.class);
+				// enable
+				// CORS
+				.exceptionHandling(ex -> ex.authenticationEntryPoint(authEntryPoint)).authorizeHttpRequests(auth -> {
+					if (securityProperties.getPublicApis() != null && !securityProperties.getPublicApis().isEmpty()) {
+						auth.requestMatchers(securityProperties.getPublicApis().toArray(String[]::new)).permitAll();
+					}
+					auth.anyRequest().authenticated();
+				}).addFilterBefore(new JwtAuthFilter(publicKey), UsernamePasswordAuthenticationFilter.class);
 
 		return http.build();
 	}
