@@ -4,8 +4,6 @@ import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import feign.FeignException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -47,7 +45,7 @@ public class GlobalExceptionHandler {
 
 		log.warn("❌ Validation failed: {}", errors);
 
-		MessageCode validationMessage = getMessage("error.validation", locale);
+		MessageCode validationMessage = getMessage("E5000", locale);
 		GeneralApiResponse<Map<String, MessageCode>> apiResponse = GeneralApiResponse.error(HttpStatus.BAD_REQUEST,
 				validationMessage, errors);
 
@@ -77,34 +75,12 @@ public class GlobalExceptionHandler {
 		return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(apiResponse);
 	}
 
-	// --- 502 - Remote Service Error ---
-	@ExceptionHandler(FeignException.class)
-	public ResponseEntity<GeneralApiResponse<MessageCode>> handleFeignException(FeignException ex, Locale locale) {
-		log.error("💥 Feign Exception occurred", ex);
-		MessageCode messageCode ;
-		try{
-			String body = ex.contentUTF8();
-			ObjectMapper objectMapper = new ObjectMapper();
-			FeignErrorResponse error = objectMapper.readValue(body, FeignErrorResponse.class);
-			messageCode = error.getMessage();
-
-			log.warn("Feign error parsed : {}" , messageCode);
-		}
-		catch(Exception e){
-			log.error("Feign error parsing failed", e);
-			messageCode = getMessage("error.unexpected", locale);
-		}
-		GeneralApiResponse<MessageCode> apiResponse = GeneralApiResponse.error(HttpStatus.BAD_GATEWAY, messageCode);
-		return ResponseEntity.status(HttpStatus.BAD_GATEWAY).body(apiResponse);
-	}
-
-
 	// --- 500 - Internal Server Error ---
 	@ExceptionHandler(Exception.class)
 	public ResponseEntity<GeneralApiResponse<MessageCode>> handleGenericException(Exception ex, Locale locale) {
 		log.error("💥 Unexpected error occurred", ex);
 
-		MessageCode messageError = getMessage("error.unexpected", locale);
+		MessageCode messageError = getMessage("E5001", locale);
 		GeneralApiResponse<MessageCode> apiResponse = GeneralApiResponse.error(HttpStatus.INTERNAL_SERVER_ERROR,
 				messageError);
 
