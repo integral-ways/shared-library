@@ -16,6 +16,8 @@ import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseBodyAdvice;
 
 import com.itways.dtos.GeneralApiResponse;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.core.JsonProcessingException;
 
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
@@ -25,20 +27,52 @@ import lombok.extern.slf4j.Slf4j;
 @ControllerAdvice
 public class ApiResponseWrapperAdvice implements ResponseBodyAdvice<Object> {
 
-	private static final List<String> EXCLUDED_PATH_PREFIXES = List.of("/actuator", "/v3/api-docs",
-			"/swagger-resources", "/swagger-ui", "/webjars");
+	private static final List<String> EXCLUDED_PATH_PREFIXES = List.of("/actuator", "/v3/api-docs", "api-docs",
+			"/swagger-resources", "/swagger-ui", "/webjars", "swagger");
 
 	private final HttpServletRequest request;
+	private final ObjectMapper objectMapper;
 
-	public ApiResponseWrapperAdvice(HttpServletRequest request) {
+	public ApiResponseWrapperAdvice(HttpServletRequest request, ObjectMapper objectMapper) {
 		this.request = request;
+		this.objectMapper = objectMapper;
 		log.info("✅ ApiResponseWrapperAdvice initialized");
 	}
 
 	@Override
 	public boolean supports(MethodParameter returnType, Class<? extends HttpMessageConverter<?>> converterType) {
 		String path = request.getRequestURI();
-		return !EXCLUDED_PATH_PREFIXES.stream().anyMatch(path::contains);
+		if (EXCLUDED_PATH_PREFIXES.stream().anyMatch(path::contains)) {
+			return false;
+		}
+
+		Class<?> returnClass = returnType.getParameterType();
+
+		// Don't wrap if it's already an ApiResponse
+		if (GeneralApiResponse.class.isAssignableFrom(returnClass)) {
+			return false;
+		}
+
+		// Check if it's a ResponseEntity containing GeneralApiResponse
+		if (ResponseEntity.class.isAssignableFrom(returnClass)) {
+			java.lang.reflect.Type genericType = returnType.getGenericParameterType();
+			if (genericType instanceof java.lang.reflect.ParameterizedType pt) {
+				java.lang.reflect.Type[] args = pt.getActualTypeArguments();
+				if (args.length > 0 && args[0] instanceof Class<?> bodyClass) {
+					if (GeneralApiResponse.class.isAssignableFrom(bodyClass)) {
+						return false;
+					}
+				}
+			}
+		}
+
+		// Don't wrap binary data, images, or Resources
+		if (byte[].class.equals(returnClass)
+				|| org.springframework.core.io.Resource.class.isAssignableFrom(returnClass)) {
+			return false;
+		}
+
+		return true;
 	}
 
 	@Override
@@ -57,21 +91,21 @@ public class ApiResponseWrapperAdvice implements ResponseBodyAdvice<Object> {
 			status = HttpStatus.valueOf(servletResponse.getServletResponse().getStatus());
 		}
 
-		// If body is ResponseEntity, unwrap and wrap inside GeneralApiResponse with
-		// original status
-		if (body instanceof ResponseEntity<?> responseEntity) {
-			Object responseBody = responseEntity.getBody();
+		// Wrap the raw response body in GeneralApiResponse
+		GeneralApiResponse<Object> wrapped = GeneralApiResponse.success(status, null, body);
 
-			if (responseBody instanceof GeneralApiResponse) {
-				return body; // already wrapped
+		// Handle String responses to prevent ClassCastException in
+		// StringHttpMessageConverter
+		if (body instanceof String || org.springframework.http.converter.StringHttpMessageConverter.class
+				.isAssignableFrom(selectedConverterType)) {
+			try {
+				return objectMapper.writeValueAsString(wrapped);
+			} catch (JsonProcessingException e) {
+				log.error("Error wrapping String response", e);
+				return body;
 			}
-
-			return ResponseEntity.status(responseEntity.getStatusCode()).headers(responseEntity.getHeaders())
-					.body(GeneralApiResponse.success(HttpStatus.valueOf(responseEntity.getStatusCode().value()), null,
-							responseBody));
 		}
 
-		// Wrap the raw response body in GeneralApiResponse with 200 OK
-		return GeneralApiResponse.success(status,null,body);
+		return wrapped;
 	}
 }
