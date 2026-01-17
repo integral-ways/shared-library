@@ -8,12 +8,14 @@ import java.security.spec.X509EncodedKeySpec;
 import java.util.Base64;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 import com.itways.common.props.JwtProperties;
 
 @Configuration
+@ConditionalOnProperty(name = "itways.security.jwt.public-key")
 public class RsaKeysConfig {
 
 	@Autowired

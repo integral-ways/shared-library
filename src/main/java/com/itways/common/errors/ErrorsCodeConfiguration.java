@@ -9,9 +9,6 @@ import org.springframework.context.support.ResourceBundleMessageSource;
 @Configuration
 public class ErrorsCodeConfiguration {
 
-//	@Autowired
-//	private CacheProperties cacheProperties;
-
 	@Bean
 	@Primary
 	public MessageSource messageSource() {
@@ -21,12 +18,5 @@ public class ErrorsCodeConfiguration {
 		source.setDefaultEncoding("UTF-8");
 		return source;
 	}
-
-//	@Bean
-//	ErrorsCodeFinder errorsCodeFinder() {
-////		ErrorsCodeFinder finder = cacheProperties.isDisableErrorCodes() ? new LocalErrorsCodeFinder()
-////				: new DbErrorsCodeFinder();
-//		return new DbErrorsCodeFinder();
-//	}
 
 }
