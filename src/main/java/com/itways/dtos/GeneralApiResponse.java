@@ -55,6 +55,6 @@ public class GeneralApiResponse<T> {
 	 */
 	public static <T> GeneralApiResponse<T> error(HttpStatus status, MessageCode msg, T data) {
 		return new GeneralApiResponse<>(Instant.now(), status.value(),
-				msg != null ? msg : MessageCode.builder().detail("Error").build(), null);
+				msg != null ? msg : MessageCode.builder().detail("Error").build(), data);
 	}
 }
