@@ -18,6 +18,7 @@ import org.springframework.web.servlet.mvc.method.annotation.ResponseBodyAdvice;
 import com.itways.dtos.GeneralApiResponse;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.itways.common.annotations.IgnoreResponseWrapper;
 
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
@@ -41,6 +42,12 @@ public class ApiResponseWrapperAdvice implements ResponseBodyAdvice<Object> {
 
 	@Override
 	public boolean supports(MethodParameter returnType, Class<? extends HttpMessageConverter<?>> converterType) {
+		// Check for IgnoreResponseWrapper annotation
+		if (returnType.hasMethodAnnotation(IgnoreResponseWrapper.class)
+				|| returnType.getContainingClass().isAnnotationPresent(IgnoreResponseWrapper.class)) {
+			return false;
+		}
+
 		String path = request.getRequestURI();
 		if (EXCLUDED_PATH_PREFIXES.stream().anyMatch(path::contains)) {
 			return false;
@@ -92,6 +99,9 @@ public class ApiResponseWrapperAdvice implements ResponseBodyAdvice<Object> {
 		}
 
 		// Wrap the raw response body in GeneralApiResponse
+		// But if headers were committed or we are writing binary that slipped through,
+		// we might have issues.
+		// However supports() should catch most.
 		GeneralApiResponse<Object> wrapped = GeneralApiResponse.success(status, null, body);
 
 		// Handle String responses to prevent ClassCastException in
