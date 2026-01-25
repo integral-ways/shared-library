@@ -14,6 +14,7 @@ import org.apache.hc.core5.ssl.TrustStrategy;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Primary;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.http.client.ClientHttpRequestFactory;
 import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
@@ -31,8 +32,9 @@ import lombok.extern.slf4j.Slf4j;
 @PropertySource("classpath:application-common.properties")
 public class CommonConfig {
 
-	@Bean
-	public ObjectMapper mapper() {
+	@Bean("objectMapper")
+	@Primary
+	public ObjectMapper objectMapper() {
 		ObjectMapper mapper = new ObjectMapper();
 		mapper.findAndRegisterModules();
 		mapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
@@ -58,8 +60,9 @@ public class CommonConfig {
 
 			SSLConnectionSocketFactory csf = new SSLConnectionSocketFactory(sslContext);
 			// Allow TLSv1.2 protocol, use NoopHostnameVerifier to trust self-singed cert
-//			SSLConnectionSocketFactory sslsf = new SSLConnectionSocketFactory(sslContext,
-//			        new String[] { "TLSv1" , "TLSv1.1", "TLSv1.2"  }zz, null, new NoopHostnameVerifier());
+			// SSLConnectionSocketFactory sslsf = new SSLConnectionSocketFactory(sslContext,
+			// new String[] { "TLSv1" , "TLSv1.1", "TLSv1.2" }zz, null, new
+			// NoopHostnameVerifier());
 
 			HttpClientConnectionManager connectionManager = PoolingHttpClientConnectionManagerBuilder.create()
 					.setSSLSocketFactory(csf).build();
@@ -69,7 +72,7 @@ public class CommonConfig {
 			HttpComponentsClientHttpRequestFactory requestFactory = new HttpComponentsClientHttpRequestFactory(
 					httpClient);
 			//
-//			requestFactory.setHttpClient();
+			// requestFactory.setHttpClient();
 			return requestFactory;
 		} catch (Exception e) {
 			e.printStackTrace();
